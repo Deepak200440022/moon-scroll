@@ -16,16 +16,15 @@ import { getPixelRatio, onPixelRatio } from '../../shared/pixratio.js';
 var rtWorld, rtLens;
 var lensMat, lensScene, lensCam;
 var blitMat, blitScene, blitCam;
-var isMobile = false;
 
 var BH_RS = 50; // schwarzschild radius — must match BH_RS in blackhole/hole.js
 
 function init(ctx) {
-  isMobile = ctx.isMobile;
-
   /* the stage's adaptive governor steps the ratio at runtime: keep
      the render-target sizes in sync without a window resize */
-  onPixelRatio(function () { resize(); applyQuality(); });
+  onPixelRatio(function () { resize(); });
+
+  var isMobile = ctx.isMobile;
 
   rtWorld = new THREE.WebGLRenderTarget(2, 2, {
     minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter
@@ -178,7 +177,6 @@ function init(ctx) {
   blitScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), blitMat));
 
   resize();
-  applyQuality();
 }
 
 function resize() {
@@ -193,24 +191,12 @@ function resize() {
   lensMat.uniforms.uAspect.value = lw / lh;
 }
 
-/* the geodesic loop's step budget tracks the pixel ratio: a lowered
-   ratio means the governor found slow frames (software GL / weak
-   iGPU), and the RK4 trace is the heaviest shader on the site. Fewer
-   steps only change rays that orbit 4+ turns before escaping — a
-   sub-pixel sliver hugging the critical ring, invisible in practice. */
-function applyQuality() {
-  var r = getPixelRatio();
-  lensMat.uniforms.uSteps.value = isMobile
-    ? (r <= 0.75 ? 600 : 900)
-    : (r <= 0.75 ? 1000 : 1600);
-}
-
 function update(ctx) {
   // fade the whole lensed image in over H
   lensMat.uniforms.uBi.value = M.phase(0.91, 0.95, ctx.p);
 }
 
-function render(ctx, direct) {
+function render(ctx) {
   var renderer = ctx.renderer, camera = ctx.camera;
   // 1) lensable world (starfield + nebulae + particle disk) -> rtWorld
   renderer.setRenderTarget(rtWorld);
@@ -222,11 +208,9 @@ function render(ctx, direct) {
   lensMat.uniforms.uFl.value = 1 / Math.tan((camera.fov * 0.5) * Math.PI / 180);
   renderer.setRenderTarget(rtLens);
   renderer.render(lensScene, lensCam);
-  // 3) blit the lensed image into the main RT (the dither pass follows
-  //    as usual) — or straight to the screen when the dither is fully
-  //    blended to color and the post pass would be an identity copy
+  // 3) blit the lensed image into the main RT (dither pass follows as usual)
   blitMat.map = rtLens.texture;
-  renderer.setRenderTarget(direct ? null : dither.rt);
+  renderer.setRenderTarget(dither.rt);
   renderer.render(blitScene, blitCam);
 }
 

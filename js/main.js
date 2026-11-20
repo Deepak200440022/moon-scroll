@@ -115,10 +115,5 @@ if (stage) {
 
   /* small debug hook (used by the headless smoke test, handy in the
      console): window.__EB.ctx is the live per-frame context */
-  window.__EB = {
-    ctx: ctx,
-    dither: stage.dither,
-    setRatio: (r) => stage.setRatio(r),
-    govOff: (b) => stage.govOff(b)
-  };
+  window.__EB = { ctx: ctx };
 }
