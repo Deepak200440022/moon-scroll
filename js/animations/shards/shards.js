@@ -41,6 +41,13 @@ var sDir, sZ0, sSpd, sSize, sAxis, sTSpd;
 var projectShards = [];
 var projectMeshes = [];
 
+/* the slab face canvas: 1024x672 device pixels. drawSlab works in a
+   512x336 design space (see the scale below), which the texture
+   upscales — at the slab's on-screen size (hundreds of device pixels
+   wide, up to ~1600 on 4K) the screenshot region stays sharp instead
+   of soft */
+var SLAB_W = 1024, SLAB_H = 672;
+
 // the cards' idle float clock: always ticks (fed from ctx.rawDt in
 // update) so the parked cards keep drifting gently even while the
 // story clock is frozen at the park
@@ -108,10 +115,28 @@ function buildShardGeometry(seedOffset) {
    SAME slab is repainted with the shot inside the glass and the
    CanvasTexture is bumped — the material is never swapped. A slow or
    failed load just leaves the procedural glass behind. */
+/* the screenshots are queued at init and fetched only when the story
+   is about to reach the shard band (p > 0.42): they are never part of
+   the first paint, so the page loads at the speed of three.js + the
+   hero scene. The slabs render as procedural glass until a shot
+   arrives (the onload repaints the same texture, no material swap). */
+var shotQueue = [];
+
+function loadShots() {
+  if (!shotQueue.length) return;
+  for (var i = 0; i < shotQueue.length; i++) {
+    var s = shotQueue[i];
+    s.img.fetchPriority = 'low';
+    s.img.decoding = 'async';
+    s.img.src = s.src;
+  }
+  shotQueue.length = 0;
+}
+
 function buildShardTexture(i) {
-  var W = 512, H = 336;
-  var c = document.createElement('canvas'); c.width = W; c.height = H;
+  var c = document.createElement('canvas'); c.width = SLAB_W; c.height = SLAB_H;
   var ctx = c.getContext('2d');
+  ctx.scale(SLAB_W / 512, SLAB_H / 336); // drawSlab uses 512x336 design units
   var t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
 
@@ -127,7 +152,7 @@ function buildShardTexture(i) {
       drawSlab(i, slab);
       t.needsUpdate = true;
     };
-    img.src = ROOT + pr.shot;
+    shotQueue.push({ img: img, src: ROOT + pr.shot });
   }
   return t;
 }
@@ -383,6 +408,10 @@ function update(ctx) {
   var sizeMul = ctx.isMobile ? 0.8 : 1.0;
   var xMul = ctx.isMobile ? 0.5 : 1.0;
   var ex = ctx.ex, pop = ctx.pop, pull = ctx.pull, flowZ = ctx.flowZ;
+
+  /* the shots are fetched once, just before the shard band (p >= 0.585)
+     — they never ride along with the first paint */
+  if (shotQueue.length && p > 0.42) loadShots();
 
   /* ambient shards — the instanced-matrix loop (and the upload) runs
      only when one of its inputs moved. While the story is parked,

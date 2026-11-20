@@ -96,22 +96,31 @@ export function createStage() {
      ratio down, sustained fast frames (<~15ms for a while) step it back
      up, with hysteresis so it never flaps. Desktops rarely leave the
      top step; on phones it is the difference between 60fps and jank. */
-  var GOV_MIN = 1.25;
+  /* the ladder extends below 1.0: on machines whose only renderer is a
+     software GL path (SwiftShader/llvmpipe, e.g. a headless VM) or a weak
+     iGPU, full-resolution frames never reach 40fps, so internal render
+     size is the only lever — the dithered look survives a size step and
+     40fps at 0.75x beats 15fps at full res. Fast GPUs never leave the
+     top step. */
   var govSteps = [getPixelRatio()];
-  if (govSteps[0] > 1.5) govSteps.push(1.5);
-  if (govSteps[0] > GOV_MIN) govSteps.push(GOV_MIN);
+  var LADDER = [1.5, 1.25, 1.0, 0.75, 0.6, 0.5];
+  for (var li = 0; li < LADDER.length; li++) {
+    if (govSteps[0] > LADDER[li]) govSteps.push(LADDER[li]);
+  }
   var govIdx = 0, govEma = 0, govLast = 0, govFrames = 0, govFast = 0;
+  var govOff = false; // manual freeze (debug / pinned quality): window.__EB.govOff(true)
 
   function tickGovernor() {
+    if (govOff) return;
     var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     if (govLast) {
       var ft = now - govLast;
       if (ft > 0 && ft < 1000) {          // a tab-switch gap is not a slow frame
-        govEma = govEma ? govEma + (ft - govEma) * 0.05 : ft;
+        govEma = govEma ? govEma + (ft - govEma) * 0.1 : ft;
       }
     }
     govLast = now;
-    if (++govFrames % 30 !== 0 || govSteps.length < 2) return;
+    if (++govFrames % 15 !== 0 || govSteps.length < 2) return;
     if (govEma > 24 && govIdx < govSteps.length - 1) {
       govIdx++;
       govFast = 0;
@@ -130,17 +139,23 @@ export function createStage() {
   /* frame-end render: from p >= 0.91 the lensed black hole pass owns the
      screen (when a finale renderer is attached); otherwise the story
      scene goes through the dither post pass; the flash sink commits
-     exactly once per frame. */
+     exactly once per frame.
+     When the dither has fully blended to color (p >= 0.915) the post
+     pass is an identity copy — the finale blits straight to the screen
+     and the whole pass is skipped. */
   function render(ctx, finale) {
     tickGovernor();
+    var direct = !!(finale && ctx.p >= 0.915);
     if (ctx.p >= 0.91 && finale) {
-      finale(ctx);
+      finale(ctx, direct);
     } else {
       renderer.setRenderTarget(dither.rt);
       renderer.render(scene, camera);
     }
-    renderer.setRenderTarget(null);
-    renderer.render(dither.postScene, dither.postCam);
+    if (!direct) {
+      renderer.setRenderTarget(null);
+      renderer.render(dither.postScene, dither.postCam);
+    }
     flashSink.commit();
   }
 
@@ -152,6 +167,19 @@ export function createStage() {
     dither: dither,
     mobileQ: mobileQ,
     resize: resize,
-    render: render
+    render: render,
+    /* manual override (debug / future quality control): aligns the
+       governor to the ladder step closest to the requested ratio */
+    setRatio: function (r) {
+      var want = Math.max(0.5, Math.min(2, r || getPixelRatio()));
+      var best = 0, bd = Infinity;
+      for (var i = 0; i < govSteps.length; i++) {
+        var d = Math.abs(govSteps[i] - want);
+        if (d < bd) { bd = d; best = i; }
+      }
+      govIdx = best;
+      setPixelRatio(govSteps[best]);
+    },
+    govOff: function (b) { govOff = !!b; }
   };
 }

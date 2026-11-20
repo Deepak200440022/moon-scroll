@@ -201,7 +201,7 @@ body { overflow-x: hidden; }
   position: absolute;
   inset: 0;
   background: linear-gradient(100deg,
-    rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.34) 30%, rgba(0, 0, 0, 0) 52%);
+    rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.45) 30%, rgba(0, 0, 0, 0.12) 52%, rgba(0, 0, 0, 0) 68%);
   pointer-events: none;
 }
 
@@ -224,11 +224,11 @@ body { overflow-x: hidden; }
   align-items: center;
   gap: 9px;
   margin: 0 0 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.38em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 #final-tag .dot {
@@ -247,31 +247,34 @@ body { overflow-x: hidden; }
   line-height: 1.04;
   color: #ffffff;
   -webkit-text-fill-color: #ffffff;
+  /* tight dark core shadow for legibility, glow kept short so the
+     letterforms stay crisp over the lensed disk */
   text-shadow:
-    0 0 12px rgba(214, 230, 255, 0.8),
-    0 0 38px rgba(125, 165, 255, 0.55),
-    0 0 90px rgba(255, 170, 90, 0.35),
-    0 2px 10px rgba(0, 0, 0, 0.95);
+    0 0 8px rgba(214, 230, 255, 0.55),
+    0 0 30px rgba(125, 165, 255, 0.35),
+    0 2px 12px rgba(0, 0, 0, 0.98),
+    0 4px 28px rgba(0, 0, 0, 0.8);
 }
 
 #final-sub {
   margin: 0;
-  font-size: 11px;
+  font-size: 12.5px;
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.82);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 2px 12px rgba(0, 0, 0, 0.8);
 }
 
-/* dim credential line under the sub (role · education · certification) */
+/* credential line under the sub (role · education · certification) —
+   bright enough to read at arm's length */
 #final-meta {
   margin: -8px 0 0;
   max-width: 34em;
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.7;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.55);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 2px 12px rgba(0, 0, 0, 0.8);
 }
 
 #final-btns {
@@ -318,9 +321,10 @@ body { overflow-x: hidden; }
   right: 4vw;
   bottom: 5vh;
   z-index: 4;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.24em;
-  color: rgba(255, 196, 140, 0.55);
+  color: rgba(255, 196, 140, 0.75);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

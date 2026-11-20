@@ -127,7 +127,10 @@ function init(ctx, opts) {
   onPixelRatio(function () { resize(); });
 
   var isMobile = ctx.isMobile;
-  BH_N = isMobile ? 22000 : 60000;
+  /* 48k (was 60k): the disk is a dense additive field, so a count cut
+     compensated by uGain reads identically — it just cuts vertex work
+     and overdraw on the software-GL machines the governor targets */
+  BH_N = isMobile ? 18000 : 48000;
   BH_RS = 50;        // schwarzschild radius = event horizon
   BH_GM = 400000;    // gravitational parameter (particle orbits)
   BH_DRAG = 0.025;   // 2.5%/s velocity loss -> inspiral, steady infall
@@ -174,7 +177,9 @@ function init(ctx, opts) {
   bhGeo.setAttribute('aSize', new THREE.BufferAttribute(bhSiz, 1));
 
   bhMat = new THREE.ShaderMaterial({
-    uniforms: { uPixel: { value: getPixelRatio() }, uOpacity: { value: 0 }, uGain: { value: 0.55 } },
+    /* uGain is the 60k -> 48k count compensation (each particle a bit
+       brighter, the same total light) */
+    uniforms: { uPixel: { value: getPixelRatio() }, uOpacity: { value: 0 }, uGain: { value: 0.69 } },
     vertexShader: [
       'attribute float aSize;',
       'attribute vec3 aColor;',

@@ -7,6 +7,14 @@
 <meta name="description" content="Deepak Sharma — AI/ML Engineer. Computer vision, deep learning and applied AI: real-time detection, monocular depth estimation, 3D reconstruction and production deployment." />
 <script>window.__ROOT__ = "";</script> <!-- site-root prefix for asset paths (js/shared/root.js) -->
 <link rel="stylesheet" href="css/style.css" />
+<!-- three.js is the only external dependency and the biggest file on
+     the page: start it at parse time, in parallel with everything else
+     (classic script, so no crossorigin attribute — it must match the
+     <script> fetch below) -->
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" />
+<!-- same for the module entry: main.js's static imports resolve in
+     parallel instead of one-by-one after the first parse -->
+<link rel="modulepreload" href="js/main.js" />
 </head>
 <body>
 

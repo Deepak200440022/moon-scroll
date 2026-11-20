@@ -46,6 +46,8 @@ function makeCanvas() {
       fillRect() {},
       clearRect() {},
       drawImage() {},
+      scale() {},
+      translate() {},
       strokeRect() {},
       beginPath() {},
       closePath() {},
