@@ -128,17 +128,17 @@ function init(ctx) {
 function update(ctx) {
   var p = ctx.p, ex = ctx.ex;
 
-  /* fireball (the planet breaks). The embers die out as card 1 flies
-     off (gone by 0.675, before card 2 is born at 0.680): card 1 is the
-     only card that arrives out of the blast, and every card's arrival
+  /* fireball (the planet breaks). The embers die out before card 2 is
+     born (gone by 0.632, card 2's in is 0.636): card 1 is the only
+     card that arrives out of the blast, and every card's arrival
      plays in the same clean shard stream afterwards */
-  fireball.visible = p >= 0.535 && p <= 0.675;
+  fireball.visible = p >= 0.535 && p <= 0.632;
   if (fireball.visible) {
     fbMat.uniforms.uExplode.value = ex;
     fbMat.uniforms.uOpacity.value =
       M.phase(0.535, 0.545, p) *
       (0.25 + 0.75 * (1 - M.phase(0.545, 0.58, p))) *
-      (1 - M.phase(0.58, 0.675, p));
+      (1 - M.phase(0.58, 0.632, p));
   }
 }
 

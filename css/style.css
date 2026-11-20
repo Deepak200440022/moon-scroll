@@ -11,7 +11,9 @@ html::-webkit-scrollbar { display: none; }
 
 body { overflow-x: hidden; }
 
-#scroll-space { height: 1400vh; }
+/* ~1800vh: the project band now carries six cards, so the whole story
+   gets a longer runway — each card's park keeps a comfortable dwell */
+#scroll-space { height: 1800vh; }
 
 #scene {
   position: fixed;
@@ -261,6 +263,17 @@ body { overflow-x: hidden; }
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
 }
 
+/* dim credential line under the sub (role · education · certification) */
+#final-meta {
+  margin: -8px 0 0;
+  max-width: 34em;
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+
 #final-btns {
   display: flex;
   gap: 12px;
@@ -343,6 +356,20 @@ body { overflow-x: hidden; }
 }
 
 #card:not(.open) #card-inner { pointer-events: none; }
+
+/* the project's screenshot on top of the card: hidden until a shot is
+   assigned to the active project (class "on"), then laid out as a
+   framed strip above the name */
+#card-shot {
+  display: none;
+  width: 100%;
+  height: auto;
+  margin: 0 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: #05070b;
+}
+
+#card-shot.on { display: block; }
 
 #card h3 {
   margin: 0 0 8px;
@@ -447,6 +474,8 @@ body { overflow-x: hidden; }
     top: auto !important;
   }
   #card-inner { width: auto; }
+  /* the shot stays a strip on small screens so the text still fits */
+  #card-shot { max-height: 32vh; object-fit: cover; object-position: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

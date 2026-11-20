@@ -15,7 +15,7 @@ export function computeTimeline(ctx) {
      E 0.52-0.58 explosion (the blast)
      F 0.56-0.90 projects, one by one in explicit segments:
        S1 blast->P1 (arrive, park) | S2 P1->P2 | S3 P2->P3 | S4 P3->nova
-     G 0.875-0.91 second supernova (blooms as P3 flows off)
+     G 0.875-0.91 second supernova (blooms as P6 flows off)
      H 0.91-0.95 black hole transition | I 0.95-1.00 black hole page */
   ctx.spin = Math.pow(M.phase(0.40, 0.52, p), 2.2);
   ctx.ex = M.easeOut(M.phase(0.535, 0.58, p));

@@ -8,7 +8,7 @@
    page (the WIN table), so a fast scrub can't skip a card's park
    either; each stop holds until the user scrolls on again. The
    blast's fireball is imported too: it is still lingering at the
-   very start of the range (0.585-0.675), just as on the main page. */
+   very start of the range (0.585-0.632), just as on the main page. */
 import { createStage } from '../../shared/stage.js';
 import { computeTimeline } from '../../shared/timeline.js';
 import { initRangeScroll } from '../../shared/rangescroll.js';
@@ -29,7 +29,7 @@ if (stage) {
     /* shared world + the range's preconditions + the animation */
     stars.init(ctx);
     planet.init(ctx);    // owned by the blast; still the scene's anchor early on
-    fireball.init(ctx);  // the blast's fireball lingers into 0.585-0.70
+    fireball.init(ctx);  // the blast's fireball lingers into 0.585-0.632
     shards.init(ctx);
     camera.init(ctx);
 

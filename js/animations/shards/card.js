@@ -12,11 +12,13 @@
  dependency). */
 import { M } from '../../shared/math.js';
 import { config as C } from '../../config.js';
+import { ROOT } from '../../shared/root.js';
 import { data } from '../../data/projects.js';
 import shardStream from './shards.js';
 
-var cardEl, cardInner, cardName, cardDesc, cardTags, cardLink;
+var cardEl, cardInner, cardName, cardDesc, cardTags, cardLink, cardShot;
 var ready = false;
+var lastShot = '';   // last src handed to the shot (avoids re-setting it)
 
 /* ---- card / hover state ---- */
 var hoverIdx = -1;
@@ -42,6 +44,15 @@ function fillCard(i) {
   cardName.textContent = pr.name;
   cardDesc.textContent = pr.desc;
   cardLink.href = pr.url;
+  /* the screenshot on top of the card (re-used from the slab texture's
+     cache; lazy + low priority so it never blocks the card's open).
+     Projects without a shot leave it hidden */
+  if (cardShot) {
+    var src = pr.shot ? ROOT + pr.shot : '';
+    if (src !== lastShot) { lastShot = src; if (src) cardShot.src = src; }
+    if (src) cardShot.classList.add('on');
+    else cardShot.classList.remove('on');
+  }
   cardTags.innerHTML = '';
   for (var t = 0; t < pr.tags.length; t++) {
     var s = document.createElement('span');
@@ -92,8 +103,17 @@ function init(ctx) {
   cardDesc = document.getElementById('card-desc');
   cardTags = document.getElementById('card-tags');
   cardLink = document.getElementById('card-link');
+  cardShot = document.getElementById('card-shot'); // optional: pages without it still run
   ready = !!(cardEl && cardInner && cardName && cardDesc && cardTags && cardLink);
   if (!ready) return;
+
+  /* the shot changes the card's height once it loads: re-measure so
+     the position clamping stays correct */
+  if (cardShot) {
+    cardShot.onload = function () {
+      if (cardOpen) { cardW = cardInner.offsetWidth; cardH = cardInner.offsetHeight; }
+    };
+  }
 
   _wPos = new THREE.Vector3();
   _cardV = new THREE.Vector3();
@@ -125,7 +145,7 @@ function init(ctx) {
     var hit = doRaycast(ctx);
     if (hit >= 0) {
       pinned = true;
-      closeAt = -1;
+      closeIn = -1;  // pinning cancels any close that was running
       openCard(hit);
     } else if (pinned) {
       pinned = false;

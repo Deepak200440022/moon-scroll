@@ -96,7 +96,34 @@ async function main() {
     pump(10);
     check('shards: boots at the start of the range (p=0.585)', Math.abs(ctx.p - 0.585) < 0.001);
 
-    // sweep the whole band: the hand-off rule + card order
+    // the park walk: the gate holds at every park, one card at a time.
+    // It goes FORWARD from the boot (p == P1's in, the range floor): a
+    // released gate stays disarmed until the story drops back below its
+    // `in`, and P1's in IS the floor, so a card can't be re-latched by
+    // aiming at it from above. Card 1 latches from the boot position;
+    // cards 2-6 are aimed 0.03 PAST their park, because releasing a
+    // hold needs the destination to lead the hold target by more than
+    // the hold eps — aiming at the park exactly would leave
+    // target == holdTarget and the hold could never release.
+    for (let i = 0; i < config.WIN.length; i++) {
+      const w = config.WIN[i];
+      const aim = (i === 0) ? w.park : w.park + 0.03;
+      stepTo((aim - from) / (to - from), 400);
+      pump(30);  // let the INBOUND -> HELD snap land (the stepTo break
+                 // can fire one frame before it: break eps == reach eps)
+      const mesh = animEntry.stream.projectMeshes[i];
+      check('shards: card ' + (i + 1) + ' parked at its park (p=' + ctx.p.toFixed(3) + ')',
+        ctx.parked && Math.abs(ctx.p - w.park) < 0.002 &&
+        ctx.p >= w.park && ctx.p < w.out && mesh.visible);
+    }
+    stepTo(1.0, 600);
+    check('shards: band is over at p=0.89 (no card left)',
+      animEntry.stream.projectMeshes.every((m) => !m.visible));
+
+    // sweep the whole band: the hand-off rule + card order. The walk
+    // released every gate; the run back down to the floor re-disarms
+    // them (progress back below each `in`), so the sweep replays the
+    // band with the full latch/hold/release cycle
     let worst = 0, sawGap = false;
     const seen = [];
     for (let f = 0; f <= 1.0001; f += 0.01) {
@@ -110,19 +137,10 @@ async function main() {
     }
     check('shards: at most one card at a time (max=' + worst + ')', worst <= 1);
     check('shards: there are gaps between cards', sawGap);
-    check('shards: cards appear in order P1 -> P2 -> P3',
-      seen.includes(0) && seen.includes(1) && seen.includes(2) &&
-      seen.indexOf(0) < seen.indexOf(1) && seen.indexOf(1) < seen.indexOf(2));
-
-    stepTo((0.62 - 0.585) / (0.89 - 0.585), 600);
-    check('shards: card 1 parked at p=0.62', animEntry.stream.projectMeshes[0].visible);
-    stepTo((0.74 - 0.585) / (0.89 - 0.585), 600);
-    check('shards: card 2 parked at p=0.74', animEntry.stream.projectMeshes[1].visible);
-    stepTo((0.85 - 0.585) / (0.89 - 0.585), 600);
-    check('shards: card 3 parked at p=0.85', animEntry.stream.projectMeshes[2].visible);
-    stepTo(1.0, 600);
-    check('shards: band is over at p=0.89 (no card left)',
-      animEntry.stream.projectMeshes.every((m) => !m.visible));
+    const firstSeen = config.WIN.map((w, i) => seen.indexOf(i));
+    check('shards: cards appear in order P1 -> P2 -> ... -> P' + config.WIN.length,
+      firstSeen.every((v) => v >= 0) &&
+      firstSeen.every((v, i) => i === 0 || v > firstSeen[i - 1]));
   } else if (NAME === 'blackhole') {
     pump(10);
     check('blackhole: boots at the start of the range (p=0.875)', Math.abs(ctx.p - 0.875) < 0.001);

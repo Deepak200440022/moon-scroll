@@ -54,25 +54,30 @@ var ARRIVE_SKIP = 0.35;  // arrival duration when the destination is already
 /* the project band is broken into explicit story segments, one per
    hand-off:
      S1 blast -> P1 : project 1 emerges out of the settled blast, parks
-     S2 P1  -> P2   : P1 flows off the screen, a beat, P2 arrives, parks
-     S3 P2  -> P3   : same hand-off for P2 / P3
-     S4 P3  -> nova : P3 flows off into the second supernova / black hole
+     S2..S5 Pn -> Pn+1 : Pn flows off the screen, a beat, Pn+1 arrives
+     S6 P6  -> nova : P6 flows off into the second supernova / black hole
    per project:  in   = arrival starts (also where the stop-point gate
                         latches a far destination to this card)
                  park = the stopping point: the story holds here until
                         the user scrolls on (parkgate lead latch)
                  out  = user scrolled on -> the card flows forward off-screen
-                 off  = gone */
+                 off  = gone
+   Six cards share the 0.585-0.890 band: each gets a 0.049 segment
+   (arrive 0.014 / hold 0.021 / flyOff 0.014) with a 0.002 beat of
+   clear space between cards so the hand-off reads clean. */
 var WIN = [
   /* P1's birth point (in) sits at 0.585 — AFTER the fireball has fully
      expanded and the blast is spent — so the card never pops out of a
      still-burning explosion */
-  { in: 0.585, park: 0.606, out: 0.646, off: 0.674 },
-  { in: 0.680, park: 0.724, out: 0.762, off: 0.788 },
-  { in: 0.794, park: 0.836, out: 0.866, off: 0.890 }
+  { in: 0.585, park: 0.599, out: 0.620, off: 0.634 },
+  { in: 0.636, park: 0.650, out: 0.671, off: 0.685 },
+  { in: 0.687, park: 0.701, out: 0.722, off: 0.736 },
+  { in: 0.738, park: 0.752, out: 0.773, off: 0.787 },
+  { in: 0.789, park: 0.803, out: 0.824, off: 0.838 },
+  { in: 0.840, park: 0.854, out: 0.875, off: 0.889 }
 ];
 var F_IN = 0.56;        // project band start (S1): P1 arrives out of the blast
-var F_OUT = 0.90;       // project band end: P3 has flown off into the supernova
+var F_OUT = 0.90;       // project band end: P6 has flown off into the supernova
 
 var SHARD_COUNT = 600;          // ambient rocks (desktop)
 var SHARD_COUNT_MOBILE = 300;   // ambient rocks (mobile: half the fragment cost)
@@ -83,7 +88,7 @@ var FIRE_COUNT = 6000;
    page plays them in sequence, and each folder's standalone run.html
    scrubs exactly its range (see animations/<name>/run.js). Ranges
    overlap on purpose — the story's hand-offs (blast embers into the
-   shard stream, P3 flowing off into the nova) live in the overlap. */
+   shard stream, P6 flowing off into the nova) live in the overlap. */
 var RANGES = {
   zoom: [0.000, 0.40],      // A-C: inside the station -> planet full focus
   blast: [0.40, 0.585],     // D-E: the moon spins up and detonates

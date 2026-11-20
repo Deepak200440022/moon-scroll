@@ -143,13 +143,19 @@ export function createGate(opts) {
       }
     } else { // HELD
       // scrolling back releases the stop: the user's destination
-      // moved back from where it was when the hold began (or a
-      // decisive rewind before the card's birth) — the story rewinds
-      // freely. A destination merely short of the park does NOT
-      // release: the park is the stop even when the user's scroll
-      // position sits a notch or two behind it (the next forward or
-      // backward scroll releases the hold, as usual)
-      if (target < holdTarget - holdEps || target < backGates[idx]) release();
+      // moved back from where it was when the hold began — the
+      // story rewinds freely (a decisive rewind is the same test:
+      // it moved the destination back, too). A destination merely
+      // short of the park does NOT release: the park is the stop
+      // even when the user's scroll position sits a notch or two
+      // behind it (the next forward or backward scroll releases the
+      // hold, as usual). The rewind gate (backGates) is only
+      // consulted while INBOUND: at a settled hold it would misfire
+      // on the blast's landing, where the hold begins with the
+      // destination still short of card 1's birth point (a small
+      // forward scroll past the blast edge) and would release the
+      // fresh hold on its very first frame
+      if (target < holdTarget - holdEps) release();
     }
 
     switch (state) {

@@ -45,6 +45,8 @@ function makeCanvas() {
       createLinearGradient: () => grad,
       fillRect() {},
       clearRect() {},
+      drawImage() {},
+      strokeRect() {},
       beginPath() {},
       closePath() {},
       moveTo() {},

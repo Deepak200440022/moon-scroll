@@ -9,11 +9,11 @@
  instanceMatrix upload, is skipped.
  2. project shards — one broken-glass slab per project, shown strictly
  one by one across the explicit segments in config.WIN
- (blast->P1, P1->P2, P2->P3, P3->nova): the first card is born at
- the center of the explosion and glides out on a symmetric S-curve
- (it reverses cleanly when the user scrolls back); cards 2-3 then
+ (blast->P1, P1->P2, ..., P5->P6, P6->nova): the first card is born
+ at the center of the explosion and glides out on a symmetric S-curve
+ (it reverses cleanly when the user scrolls back); cards 2-6 then
  burst in fast and straight (no sway on the entry) to their stops
- — card 1's is the bottom-left of the view, cards 2-3 their side
+ — card 1's is the bottom-left of the view, cards 2-6 their side
  slots — where it
  floats gently in space (a slow idle drift + tilt on its own
  clock, so it keeps breathing while the story is frozen at the
@@ -32,6 +32,7 @@
 import { M } from '../../shared/math.js';
 import { random } from '../../shared/random.js';
 import { config as C } from '../../config.js';
+import { ROOT } from '../../shared/root.js';
 import { data } from '../../data/projects.js';
 
 var inst, shardGroup, shardCount;
@@ -101,11 +102,43 @@ function buildShardGeometry(seedOffset) {
   return g;
 }
 
-/* ---- procedural canvas label for the slab's front face ---- */
+/* ---- canvas label for the slab's front face.
+   Every slab starts as the procedural dark-glass label; when the
+   project's screenshot (data.PROJECTS[i].shot) finishes loading, the
+   SAME slab is repainted with the shot inside the glass and the
+   CanvasTexture is bumped — the material is never swapped. A slow or
+   failed load just leaves the procedural glass behind. */
 function buildShardTexture(i) {
   var W = 512, H = 336;
   var c = document.createElement('canvas'); c.width = W; c.height = H;
   var ctx = c.getContext('2d');
+  var t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+
+  var slab = { ctx: ctx, img: null };
+  drawSlab(i, slab);
+
+  var pr = data.PROJECTS[i];
+  if (pr && pr.shot) {
+    var img = document.createElement('img');
+    img.alt = '';
+    img.onload = function () {
+      slab.img = img;
+      drawSlab(i, slab);
+      t.needsUpdate = true;
+    };
+    img.src = ROOT + pr.shot;
+  }
+  return t;
+}
+
+/* one slab face: dark glass, streaks, chipped border, index — then
+   either the centered project name (procedural fallback) or the
+   screenshot with the name + tag tucked underneath it */
+function drawSlab(i, slab) {
+  var W = 512, H = 336;
+  var ctx = slab.ctx;
+  var m = 16;
 
   // dark glass background
   var g = ctx.createLinearGradient(0, 0, W, H);
@@ -128,7 +161,7 @@ function buildShardTexture(i) {
   }
 
   // thin white border with one chipped corner (top-right)
-  var m = 16, chip = 46;
+  var chip = 46;
   ctx.strokeStyle = 'rgba(255,255,255,0.9)';
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -150,9 +183,28 @@ function buildShardTexture(i) {
   while (idx.length < 2) idx = '0' + idx;
   ctx.fillText(idx, m + 14, m + 12);
 
-  // project name, fitted to the width (short label; full name lives in the card)
-  var name = data.PROJECTS[i].label || data.PROJECTS[i].name;
-  var fs = 44;
+  var pr = data.PROJECTS[i];
+  var name = pr.label || pr.name;
+  var hasShot = !!slab.img;
+
+  if (hasShot) {
+    // the screenshot, contain-fit inside the glass over a darkened
+    // recess, framed in the same thin line as the border
+    var ix = m + 10, iy = m + 40, iw = W - 2 * (m + 10), ih = H - 26 - 66;
+    var sc = Math.min(iw / slab.img.width, ih / slab.img.height);
+    var dw = slab.img.width * sc, dh = slab.img.height * sc;
+    var dx = (W - dw) / 2, dy = iy + (ih - dh) / 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(dx, dy, dw, dh);
+    ctx.drawImage(slab.img, dx, dy, dw, dh);
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(dx + 0.5, dy + 0.5, dw - 1, dh - 1);
+  }
+
+  // project name, fitted to the width (short label; full name lives in
+  // the card) — centered when procedural, under the shot otherwise
+  var fs = hasShot ? 34 : 44;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = '700 ' + fs + 'px ui-monospace, Menlo, Consolas, monospace';
@@ -161,19 +213,15 @@ function buildShardTexture(i) {
     ctx.font = '700 ' + fs + 'px ui-monospace, Menlo, Consolas, monospace';
   }
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(name, W / 2, H / 2 - 6);
+  ctx.fillText(name, W / 2, hasShot ? H - m - 44 : H / 2 - 6);
 
   // first tag
-  var tag = data.PROJECTS[i].tags && data.PROJECTS[i].tags.length ? data.PROJECTS[i].tags[0] : '';
+  var tag = pr.tags && pr.tags.length ? pr.tags[0] : '';
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = '400 17px ui-monospace, Menlo, Consolas, monospace';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillText(tag, m + 14, H - m - 14);
-
-  var t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
 }
 
 function init(ctx, opts) {

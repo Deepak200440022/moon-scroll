@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Explore Beyond — animation: the shards</title>
+<script>window.__ROOT__ = "../../../";</script> <!-- site-root prefix for asset paths (js/shared/root.js) -->
 <link rel="stylesheet" href="../../../css/style.css" />
 </head>
 <body>
@@ -15,6 +16,7 @@
 <!-- the info card follows the active shard (hover to open, click to pin) -->
 <div id="card">
   <div id="card-inner">
+    <img id="card-shot" alt="" loading="lazy" fetchpriority="low" />
     <h3 id="card-name"></h3>
     <p class="desc" id="card-desc"></p>
     <div id="card-tags"></div>

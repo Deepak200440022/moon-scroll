@@ -7,7 +7,7 @@
 import { M } from '../../shared/math.js';
 import { data as D } from '../../data/projects.js';
 
-var finalEl, finalInner, finalTagEl, finalNameEl, finalSubEl, finalBtnsEl, eatenEl;
+var finalEl, finalInner, finalTagEl, finalNameEl, finalSubEl, finalMetaEl, finalBtnsEl, eatenEl;
 var ready = false;
 var last = { finalVis: -1, finalO: -1, finalPe: '' };
 
@@ -19,6 +19,7 @@ function init(ctx) {
   finalTagEl = document.getElementById('final-tag-text');
   finalNameEl = document.getElementById('final-name');
   finalSubEl = document.getElementById('final-sub');
+  finalMetaEl = document.getElementById('final-meta');
   finalBtnsEl = document.getElementById('final-btns');
   eatenEl = document.getElementById('eaten');
   ready = !!(finalEl && finalInner && finalTagEl && finalNameEl && finalSubEl && finalBtnsEl && eatenEl);
@@ -28,6 +29,7 @@ function init(ctx) {
     finalTagEl.textContent = D.FINAL_TAG;
     finalNameEl.textContent = D.FINAL_NAME;
     finalSubEl.textContent = D.FINAL_SUB;
+    if (finalMetaEl) finalMetaEl.textContent = D.FINAL_META || '';
     for (var i = 0; i < D.FINAL_LINKS.length; i++) {
       var pr = D.FINAL_LINKS[i];
       var a = document.createElement('a');

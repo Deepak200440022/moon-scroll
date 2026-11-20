@@ -1,7 +1,7 @@
 /* Explore Beyond — the white flash: the nova -> hole ramp (phase G->H).
    [animation: blackhole] The black hole owns the second flash beat —
-   a longer ramp as project 3 leaves and the view snaps to the black
-   hole (holds through the snap, fades by 0.94). The first beat (the
+   a longer ramp as the last project leaves and the view snaps to the
+   black hole (holds through the snap, fades by 0.94). The first beat (the
    detonation ping) lives in blast/flash.js. Both feed the shared
    sink (shared/flash.js), which writes the #flash overlay once per
    frame, so the two beats can never overwrite each other. */

@@ -9,8 +9,8 @@
       - flash peaks at the explosion, final page appears at the end
       - the stopping points: a fast jump to the bottom lands on card
         1's park (info card stays hover-only), the hold is infinite, one
-        forward gesture per card walks P1 -> P2 -> P3 -> finale, and
-        scrolling back rewinds freely
+        forward gesture per card walks every card's park in order to
+        the finale, and scrolling back rewinds freely
    Also cross-checks that every getElementById target in the JS exists
    in a page (index.html or one of the run pages).
    Run: node test/smoke.js */
@@ -103,8 +103,10 @@ async function main() {
   let worst = 0;
   let sawGap = false;
   let sawAll = 0;
+  let samples = 0;
   for (let tp = 0.55; tp <= 0.921; tp += 0.004) {
     const p = stepTo(tp);
+    samples++;
     worst = Math.max(worst, visibleProjectCards());
     const inside = config.WIN.filter((w) => p > w.in + 0.003 && p < w.off - 0.003).length;
     if (inside === 0) sawGap = true;
@@ -112,7 +114,8 @@ async function main() {
   }
   check('at most one project shard visible at any time (max=' + worst + ')', worst <= 1);
   check('there are beats with no card (hand-off gaps)', sawGap);
-  check('cards are present across most of the band', sawAll > 60);
+  check('cards are present across most of the band (' + sawAll + '/' + samples + ' samples)',
+        sawAll / samples > 0.5);
 
   /* specific story beats */
   stepTo(0.03, 200);
@@ -144,31 +147,25 @@ async function main() {
   check('decisive scroll back releases the card-1 park (p=' + ctx.p.toFixed(3) + ')',
         Math.abs(ctx.p - 0.56) < 0.004 && visibleProjectCards() === 0);
 
-  stepTo(0.62, 700);
-  check('card 1 parked at 0.62 (one visible)', visibleProjectCards() === 1);
+  const midPark = (i) => (config.WIN[i].park + config.WIN[i].out) / 2;
+  const gap12 = (config.WIN[0].off + config.WIN[1].in) / 2;
+
+  stepTo(midPark(0), 700);
+  check('card 1 parked at its park (one visible)', visibleProjectCards() === 1);
   check('card 1 is the first project', shardsEntry.stream.projectMeshes[0].visible);
 
-  stepTo(0.676, 400);
-  check('gap between P1 and P2 at 0.676 (none visible)', visibleProjectCards() === 0);
+  stepTo(gap12, 400);
+  check('gap between card 1 and card 2 (none visible)', visibleProjectCards() === 0);
 
-  stepTo(0.74, 400);
-  check('card 2 parked at 0.74', shardsEntry.stream.projectMeshes[1].visible);
+  stepTo(midPark(1), 400);
+  check('card 2 parked at its park', shardsEntry.stream.projectMeshes[1].visible);
 
-  stepTo(0.85, 400);
-  check('card 3 parked at 0.85', shardsEntry.stream.projectMeshes[2].visible);
+  stepTo(midPark(2), 400);
+  check('card 3 parked at its park', shardsEntry.stream.projectMeshes[2].visible);
 
-  stepTo(0.945, 500);
-  check('flash faded after the snap', parseFloat(elements.flash.style.opacity) < 0.05);
-
-  stepTo(1.0, 500);
-  check('final page visible at the end', elements.final.style.visibility === 'visible');
-  check('final name populated from data', elements['final-name'].textContent === 'Deepak Sharma');
-  check('final buttons built from data (4)', elements['final-btns'].children.length === 4);
-  check('eaten counter formatted', /^EATEN \d{6}$/.test(elements.eaten.textContent));
-  check('final buttons clickable at 0.97+', elements['final-btns'].style.pointerEvents === 'auto');
-
+  /* below the blast again (the stopping-point section re-plays the
+     whole blast from scratch; the final page is still to come) */
   stepTo(0.5, 500);
-  check('final page hidden when scrolled back', elements.final.style.visibility === 'hidden');
   check('card closed when leaving the band', !elements.card.classList.contains('open'));
 
   /* ---- the stopping points (shared/parkgate.js) ----
@@ -214,15 +211,16 @@ async function main() {
         ctx.parked && Math.abs(ctx.p - config.WIN[1].park) < 0.002 && visibleProjectCards() === 1);
 
   /* scrolling back releases a hold and rewinds freely (no gate hold);
-     0.677 is the true gap between card 1 (gone by 0.674) and card 2
-     (in at 0.680) */
-  stepTo(0.677, 400);
+     the beat between card 1 (gone by WIN[0].off) and card 2 (in at
+     WIN[1].in) is clear space — no card visible there */
+  stepTo(gap12, 400);
   check('scrolling back releases the hold and rewinds freely (p=' + ctx.p.toFixed(3) + ')',
-        Math.abs(ctx.p - 0.677) < 0.004 && visibleProjectCards() === 0);
+        Math.abs(ctx.p - gap12) < 0.004 && visibleProjectCards() === 0);
 
   /* forward again: wheeling away from the bottom of the page also
      advances the page scroll (as in a browser), so keep wheeling until
-     the destination lies clearly past the next park */
+     the destination lies clearly past the next park — one beat per
+     card, through the whole band */
   function wheelAway(storyTarget, done, maxFrames) {
     let guard = 0;
     while (guard++ < (maxFrames || 1500) && window.__raf) {
@@ -233,23 +231,40 @@ async function main() {
       if (done()) break;
     }
   }
-  wheelAway(config.WIN[1].park + 0.03,
-            () => ctx.parked && Math.abs(ctx.p - config.WIN[1].park) < 0.002);
-  wheelAway(config.WIN[2].park + 0.03,
-            () => ctx.parked && Math.abs(ctx.p - config.WIN[2].park) < 0.002);
-  check('the walk reaches card 3 park (p=' + ctx.p.toFixed(3) + ')',
-        ctx.parked && Math.abs(ctx.p - config.WIN[2].park) < 0.002 && visibleProjectCards() === 1);
+  for (let i = 1; i < config.WIN.length; i++) {
+    wheelAway(config.WIN[i].park + 0.03,
+              () => ctx.parked && Math.abs(ctx.p - config.WIN[i].park) < 0.002);
+  }
+  check('the walk reaches the last card park (p=' + ctx.p.toFixed(3) + ')',
+        ctx.parked &&
+        Math.abs(ctx.p - config.WIN[config.WIN.length - 1].park) < 0.002 &&
+        visibleProjectCards() === 1);
   wheelAway(1.0, () => !ctx.parked && ctx.p > 0.99);
   check('the final scroll-on beat reaches the finale (p=' + ctx.p.toFixed(3) + ')',
         !ctx.parked && ctx.p > 0.99 && elements.final.style.visibility === 'visible');
 
+  check('flash faded after the snap', parseFloat(elements.flash.style.opacity) < 0.05);
+  check('final page visible at the end', elements.final.style.visibility === 'visible');
+  check('final name populated from data', elements['final-name'].textContent === 'Deepak Sharma');
+  check('final sub populated from data', elements['final-sub'].textContent === 'AI/ML Engineer — computer vision, deep learning & applied AI');
+  check('final meta line populated from data', /Global Infoventures/.test(elements['final-meta'].textContent));
+  check('final buttons built from data (4)', elements['final-btns'].children.length === 4);
+  check('eaten counter formatted', /^EATEN \d{6}$/.test(elements.eaten.textContent));
+  check('final buttons clickable at 0.97+', elements['final-btns'].style.pointerEvents === 'auto');
+
   /* backward from the finale rewinds freely into the band (no gate
      hold blocks it) — it settles in card 2's viewing zone, where the
      natural sticky park holds it */
-  stepTo(0.75, 400);
+  stepTo(midPark(1), 400);
   check('scrolling back from the finale rewinds freely (p=' + ctx.p.toFixed(3) + ')',
         ctx.p >= config.WIN[1].park - 0.002 && ctx.p < config.WIN[1].out &&
         shardsEntry.stream.projectMeshes[1].visible);
+
+  /* and all the way back below the blast: the final page is gone and
+     the info card is closed again */
+  stepTo(0.5, 500);
+  check('final page hidden when scrolled back', elements.final.style.visibility === 'hidden');
+  check('card closed when leaving the band', !elements.card.classList.contains('open'));
 
   /* ---- regression: reading-pace scroll (the real user's flow) ----
      a human scrolls in notches and pauses: the destination leads the
@@ -263,7 +278,7 @@ async function main() {
      end within one notch); they must come out P1 -> P2 -> P3 */
   stepTo(0.56, 800);
   {
-    const firstStop = [-1, -1, -1];
+    const firstStop = new Array(config.WIN.length).fill(-1);
     let visit = 0;
     let wasParked = false;
     function boundary() {
@@ -290,9 +305,11 @@ async function main() {
       }
       boundary();
     }
+    const inOrder = firstStop[0] === 1 &&
+      firstStop.every((v, i) => v > 0 && (i === 0 || v > firstStop[i - 1]));
     check('reading-pace scroll stops at every card park, in order (first stops: ' +
           firstStop.join(',') + ')',
-          firstStop[0] === 1 && firstStop[1] > 1 && firstStop[2] > firstStop[1]);
+          inOrder);
   }
 
   check('timeline values stay finite', Number.isFinite(ctx.p) && Number.isFinite(ctx.camZ) && Number.isFinite(ctx.flowZ));
