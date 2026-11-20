@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Explore Beyond — animation: the black hole</title>
+<link rel="stylesheet" href="../../../css/style.css" />
+</head>
+<body>
+
+<!-- the scrub: page scroll maps onto this animation's story range (0.875-1.0) -->
+<div id="scroll-space" style="height:700vh"></div>
+<canvas id="scene"></canvas>
+
+<div id="flash"></div>
+
+<!-- phase I: centered final page over the black hole -->
+<div id="final">
+  <div id="final-inner">
+    <p id="final-tag"><span class="dot"></span><span id="final-tag-text">EXPLORE BEYOND</span></p>
+    <h1 id="final-name">YOUR NAME</h1>
+    <p id="final-sub">Creator of worlds</p>
+    <div id="final-btns"></div>
+    <p id="final-hint"><span class="hint-d">drag to orbit &middot; scroll to zoom</span><span class="hint-m">swipe sideways to orbit &middot; pinch to zoom</span></p>
+  </div>
+</div>
+
+<div id="eaten">EATEN 000000</div>
+
+<div id="fallback"><p>This animation needs WebGL and a connection to load three.js.</p></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script type="module" src="./run.js"></script>
+</body>
+</html>

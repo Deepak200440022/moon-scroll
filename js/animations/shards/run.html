@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Explore Beyond — animation: the shards</title>
+<link rel="stylesheet" href="../../../css/style.css" />
+</head>
+<body>
+
+<!-- the scrub: page scroll maps onto this animation's story range (0.585-0.89) -->
+<div id="scroll-space" style="height:1000vh"></div>
+<canvas id="scene"></canvas>
+
+<!-- the info card follows the active shard (hover to open, click to pin) -->
+<div id="card">
+  <div id="card-inner">
+    <h3 id="card-name"></h3>
+    <p class="desc" id="card-desc"></p>
+    <div id="card-tags"></div>
+    <a id="card-link" href="#" target="_blank" rel="noopener">View project</a>
+  </div>
+</div>
+
+<div id="fallback"><p>This animation needs WebGL and a connection to load three.js.</p></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script type="module" src="./run.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Explore Beyond — animation: the zoom</title>
+<link rel="stylesheet" href="../../../css/style.css" />
+</head>
+<body>
+
+<!-- the scrub: page scroll maps onto this animation's story range (0.00-0.40) -->
+<div id="scroll-space" style="height:800vh"></div>
+<canvas id="scene"></canvas>
+
+<div id="ui">
+  <div id="progress"></div>
+  <div id="hero" class="panel">
+    <h1 class="h">Explore Beyond</h1>
+    <p class="b tag">a small station, a small window, and a planet that spins too fast</p>
+  </div>
+  <div id="corner" class="panel">
+    <p class="k">01 / The window</p>
+    <p class="b">You start inside the station, looking out through the glass.</p>
+  </div>
+  <div id="hint">
+    <svg width="14" height="18" viewBox="0 0 14 18" fill="none" stroke="#fff" stroke-width="1" aria-hidden="true">
+      <path d="M7 1v14M2.5 10.5 7 15l4.5-4.5"/>
+    </svg>
+    <span>scroll</span>
+  </div>
+</div>
+
+<div id="fallback"><p>This animation needs WebGL and a connection to load three.js.</p></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script type="module" src="./run.js"></script>
+</body>
+</html>

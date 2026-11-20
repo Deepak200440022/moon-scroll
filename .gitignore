@@ -1,0 +1,11 @@
+# unrelated project living in this folder (see README notes)
+js/phases/
+
+# pre-refactor monolith, kept locally for shader-diff only
+index.html.bak
+index.spec.html
+
+# misc
+*.zip
+.DS_Store
+node_modules/
